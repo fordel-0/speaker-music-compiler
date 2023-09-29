@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-import sys
+
+
+'''
+Copyright © 2023 fordel-0 <00.frdl@gmail.com>
+This work is free. You can redistribute it and/or modify it under the
+terms of the Do What The Fuck You Want To Public License, Version 2,
+as published by Sam Hocevar. See the COPYING file for more details.
+'''
+
+
+import argparse
 import wave
 
 
@@ -134,8 +144,13 @@ def note_to_freq(full_note, a1):
 
 
 if __name__ == "__main__":
-	compiler = Compiler(sys.argv[1])
+	parser = argparse.ArgumentParser(prog="fordel's Speaker Music Compiler",
+									 description="Compiles speaker music")
+	parser.add_argument('filename')
+	args = parser.parse_args()
+
+	compiler = Compiler(args.filename)
 	frames = beeps_to_frames(compiler.beeps)
-	with wave.open(f"../storage/music/{sys.argv[1]}.wav", "wb") as file:
+	with wave.open(f"../storage/music/{args.filename}.wav", "wb") as file:
 		file.setparams((1, 1, 44100, 0, "NONE", "not compressed"))
 		file.writeframes(frames)
