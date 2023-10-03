@@ -22,20 +22,18 @@ class Compiler:
 		self.a1 = 55
 		self.time = 1
 		self.beeps = []
+		self.mode = "notes"
 		with open(path, "rt") as file:
 			self.compile(file.read())
 
 	def compile(self, source):
 		for line in source.split("\n"):
-			if line.find("#") != -1:
-				line = line[:line.find("#") + 0]
-			if line == "":
-				continue
+			line = crop_line(line)
 
-			if line[0] == "!":
-				params = self.parse_bang(line)
-			else:
+			if line == "" or line[0] != "!":
 				self.beeps += self.compile_line(line)
+			else:
+				self.parse_bang(line)
 		return self.beeps
 
 	def parse_bang(self, line):
@@ -43,6 +41,10 @@ class Compiler:
 		s = line[1:].split("=")
 		key, value = s
 		match key:
+			case "mode":
+				if value not in ["notes", "tabs"]:
+					raise Exception("Unknown mode")
+				self.mode = value
 			case "bpm":
 				self.mspb = bpm_to_mspb(int(value))
 			case "a4":
@@ -124,7 +126,7 @@ def tokenize(line):
 		elif line[i] == " ":
 			i += 1
 		else:
-			raise Exception("Unknown symbol")
+			raise Exception(f"Unknown symbol {line[i]}")
 	return tokens
 
 
@@ -141,6 +143,13 @@ def note_to_freq(full_note, a1):
 	octave = int(octave) - 1
 	note_index = octave + note_list.index(note) / 12
 	return round(a1 * (2 ** note_index), 3)
+
+
+def crop_line(line):
+	sharp_pos = line.find("#")
+	if sharp_pos == -1:
+		return line
+	return line[:sharp_pos]
 
 
 if __name__ == "__main__":
